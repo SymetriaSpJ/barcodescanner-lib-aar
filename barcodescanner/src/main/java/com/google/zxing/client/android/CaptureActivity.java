@@ -116,7 +116,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
   private Result lastResult;
   private boolean hasSurface;
   private boolean copyToClipboard;
-  private boolean beepOnScan;
   private IntentSource source;
   private String sourceUrl;
   private ScanFromWebPageManager scanFromWebPageManager;
@@ -200,13 +199,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     lastResult = null;
 
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-    /*
-    if (prefs.getBoolean(PreferencesActivity.KEY_DISABLE_AUTO_ORIENTATION, false)) {
-      setRequestedOrientation(getCurrentOrientation());
-    } else {
-      setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-    }
-    */
 
     // defaults to SENSOR
     final String scanOrientationLock = getIntent().getStringExtra(Intents.Scan.ORIENTATION_LOCK);
@@ -227,8 +219,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
 
     copyToClipboard = prefs.getBoolean(PreferencesActivity.KEY_COPY_TO_CLIPBOARD, true)
         && (intent == null || intent.getBooleanExtra(Intents.Scan.SAVE_HISTORY, true));
-
-    beepOnScan = (intent == null || intent.getBooleanExtra(Intents.Scan.BEEP_ON_SCAN, true));
 
     source = IntentSource.NONE;
     sourceUrl = null;
@@ -262,11 +252,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
             cameraManager.setManualCameraId(cameraId);
           }
         }
-
-        if (intent.getBooleanExtra(Intents.Scan.TORCH_ON, false)) {
-          cameraManager.setTorchInitiallyOn(true);
-        }
-
+        
         String customPromptMessage = intent.getStringExtra(Intents.Scan.PROMPT_MESSAGE);
         if (customPromptMessage != null) {
           statusView.setText(customPromptMessage);
@@ -308,27 +294,6 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     } else {
       // Install the callback and wait for surfaceCreated() to init the camera.
       surfaceHolder.addCallback(this);
-    }
-  }
-
-  private int getCurrentOrientation() {
-    int rotation = getWindowManager().getDefaultDisplay().getRotation();
-    if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-      switch (rotation) {
-        case Surface.ROTATION_0:
-        case Surface.ROTATION_90:
-          return ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-        default:
-          return ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
-      }
-    } else {
-      switch (rotation) {
-        case Surface.ROTATION_0:
-        case Surface.ROTATION_270:
-          return ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-        default:
-          return ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
-      }
     }
   }
   
@@ -399,13 +364,12 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     return super.onKeyDown(keyCode, event);
   }
 
-// we don't want the help/share/settings/history menu options
-//  @Override
-//  public boolean onCreateOptionsMenu(Menu menu) {
-//    MenuInflater menuInflater = getMenuInflater();
-//    menuInflater.inflate(R.menu.capture, menu);
-//    return super.onCreateOptionsMenu(menu);
-//  }
+  @Override
+  public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater menuInflater = getMenuInflater();
+    menuInflater.inflate(R.menu.capture, menu);
+    return super.onCreateOptionsMenu(menu);
+  }
 
   @Override
   public boolean onOptionsItemSelected(MenuItem item) {
@@ -491,9 +455,7 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
     if (fromLiveScan) {
       historyManager.addHistoryItem(rawResult, resultHandler);
       // Then not from history, so beep/vibrate and we have an image to draw on
-      if (beepOnScan) {
-        beepManager.playBeepSoundAndVibrate();
-      }
+      beepManager.playBeepSoundAndVibrate();
       drawResultPoints(barcode, scaleFactor, rawResult);
     }
 
@@ -675,18 +637,12 @@ public final class CaptureActivity extends Activity implements SurfaceHolder.Cal
       viewfinderView.drawResultBitmap(barcode);
     }
 
-    long resultDurationMS = DEFAULT_INTENT_RESULT_DURATION_MS;
-    if (getIntent() != null) {
-      if (getIntent().hasExtra(Intents.Scan.RESULT_DISPLAY_DURATION_MS)) {
-        final String durationStr = getIntent().getStringExtra(Intents.Scan.RESULT_DISPLAY_DURATION_MS);
-        if (durationStr != null) {
-          try {
-            resultDurationMS = Long.parseLong(durationStr);
-          } catch (NumberFormatException e) {
-            Log.e(TAG, "Could not parse " + durationStr + " to Long", e);
-          }
-        }
-      }
+    long resultDurationMS;
+    if (getIntent() == null) {
+      resultDurationMS = DEFAULT_INTENT_RESULT_DURATION_MS;
+    } else {
+      resultDurationMS = getIntent().getLongExtra(Intents.Scan.RESULT_DISPLAY_DURATION_MS,
+                                                  DEFAULT_INTENT_RESULT_DURATION_MS);
     }
 
     if (resultDurationMS > 0) {

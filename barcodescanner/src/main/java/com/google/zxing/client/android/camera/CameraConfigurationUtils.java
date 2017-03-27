@@ -275,6 +275,8 @@ public final class CameraConfigurationUtils {
 
   public static Point findBestPreviewSizeValue(Camera.Parameters parameters, Point screenResolution) {
 
+
+
     List<Camera.Size> rawSupportedSizes = parameters.getSupportedPreviewSizes();
     if (rawSupportedSizes == null) {
       Log.w(TAG, "Device returned no supported preview sizes; using default");
@@ -325,8 +327,11 @@ public final class CameraConfigurationUtils {
       }
 
       boolean isCandidatePortrait = realWidth < realHeight;
-      int maybeFlippedWidth = isCandidatePortrait ? realHeight : realWidth;
-      int maybeFlippedHeight = isCandidatePortrait ? realWidth : realHeight;
+      boolean isScreenPortrait = screenResolution.x < screenResolution.y;
+      boolean isOrientationMatch = (isCandidatePortrait && isScreenPortrait || !isCandidatePortrait && !isScreenPortrait);
+
+      int maybeFlippedWidth = isOrientationMatch ? realWidth : realHeight;
+      int maybeFlippedHeight = isOrientationMatch ? realHeight : realWidth;
       double aspectRatio = maybeFlippedWidth / (double) maybeFlippedHeight;
       double distortion = Math.abs(aspectRatio - screenAspectRatio);
       if (distortion > MAX_ASPECT_DISTORTION) {
@@ -349,6 +354,8 @@ public final class CameraConfigurationUtils {
       Point largestSize = new Point(largestPreview.width, largestPreview.height);
       Log.i(TAG, "Using largest suitable preview size: " + largestSize);
       return largestSize;
+    } else {
+      Log.i(TAG, "######## No largest suitable preview size!");
     }
 
     // If there is nothing at all suitable, return current preview size
