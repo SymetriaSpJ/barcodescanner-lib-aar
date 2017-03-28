@@ -99,7 +99,6 @@ public final class Intents {
     /**
      * Optional parameters to specify the width and height of the scanning rectangle in pixels.
      * The app will try to honor these, but will clamp them to the size of the preview frame.
-     * The app will try to honor these, but will clamp them to the size of the preview frame.
      * You should specify both or neither, and pass the size as an int.
      */
     public static final String WIDTH = "SCAN_WIDTH";
@@ -183,16 +182,6 @@ public final class Intents {
      * Set to true if we want to show the button to toggle the torch (if available)
      */
     public static final String SHOW_TORCH_BUTTON = "SHOW_TORCH_BUTTON";
-
-    /**
-     * Set to true if we want to show the launch with the torch toggled on
-     */
-    public static final String TORCH_ON = "TORCH_ON";
-
-    /**
-     * Set to false if you want to suppress the beep when a code is scanned
-     */
-    public static final String BEEP_ON_SCAN = "BEEP_ON_SCAN";
 
     /**
      * Set to true if you want to enable bulk scan mode
