@@ -245,7 +245,6 @@ public final class CameraManager {
   }
   
   private static int findDesiredDimensionInRange(int resolution, int hardMin, int hardMax) {
-//    int dim = resolution / 2; // Target 1/2 of each dimension
     int dim = 5 * resolution / 8; // Target 5/8 of each dimension
     if (dim < hardMin) {
       return hardMin;
