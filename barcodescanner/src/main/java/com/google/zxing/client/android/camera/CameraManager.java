@@ -56,7 +56,6 @@ public final class CameraManager {
   private Rect framingRectInPreview;
   private boolean initialized;
   private boolean previewing;
-  private boolean torchInitiallyOn;
   private int requestedCameraId = OpenCameraInterface.NO_REQUESTED_CAMERA;
   private int requestedFramingRectWidth;
   private int requestedFramingRectHeight;
@@ -125,9 +124,6 @@ public final class CameraManager {
     }
     cameraObject.setPreviewDisplay(holder);
 
-    if (torchInitiallyOn) {
-      setTorch(true);
-    }
   }
 
   public synchronized boolean isOpen() {
@@ -311,10 +307,6 @@ public final class CameraManager {
     requestedCameraId = cameraId;
   }
   
-  public synchronized void setTorchInitiallyOn(boolean on) {
-    torchInitiallyOn = on;
-  }
-
   /**
    * Allows third party apps to specify the scanning rectangle dimensions, rather than determine
    * them automatically based on screen resolution.
